@@ -96,10 +96,19 @@ export function isBundledSkillAllowed(entry: SkillEntry, allowlist?: string[]): 
   return allowlist.includes(key) || allowlist.includes(entry.skill.name);
 }
 
+/** Fallback dirs when PATH is minimal (e.g. some container envs) so skills like gog in /usr/local/bin are still found. */
+const FALLBACK_BIN_DIRS = ["/usr/local/bin", "/usr/bin", "/bin"];
+
 export function hasBinary(bin: string): boolean {
   const pathEnv = process.env.PATH ?? "";
   const parts = pathEnv.split(path.delimiter).filter(Boolean);
-  for (const part of parts) {
+  const dirsToCheck = [...parts];
+  for (const fallback of FALLBACK_BIN_DIRS) {
+    if (!parts.includes(fallback)) {
+      dirsToCheck.push(fallback);
+    }
+  }
+  for (const part of dirsToCheck) {
     const candidate = path.join(part, bin);
     try {
       fs.accessSync(candidate, fs.constants.X_OK);

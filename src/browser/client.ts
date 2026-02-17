@@ -98,13 +98,16 @@ function withBaseUrl(baseUrl: string | undefined, path: string): string {
   return `${trimmed.replace(/\/$/, "")}${path}`;
 }
 
+// Timeout for status: allow cold Chromium launch in containers (e.g. Fly.io headless).
+const BROWSER_STATUS_TIMEOUT_MS = 25_000;
+
 export async function browserStatus(
   baseUrl?: string,
   opts?: { profile?: string },
 ): Promise<BrowserStatus> {
   const q = buildProfileQuery(opts?.profile);
   return await fetchBrowserJson<BrowserStatus>(withBaseUrl(baseUrl, `/${q}`), {
-    timeoutMs: 1500,
+    timeoutMs: BROWSER_STATUS_TIMEOUT_MS,
   });
 }
 
@@ -112,7 +115,7 @@ export async function browserProfiles(baseUrl?: string): Promise<ProfileStatus[]
   const res = await fetchBrowserJson<{ profiles: ProfileStatus[] }>(
     withBaseUrl(baseUrl, `/profiles`),
     {
-      timeoutMs: 3000,
+      timeoutMs: BROWSER_STATUS_TIMEOUT_MS,
     },
   );
   return res.profiles ?? [];
@@ -122,7 +125,7 @@ export async function browserStart(baseUrl?: string, opts?: { profile?: string }
   const q = buildProfileQuery(opts?.profile);
   await fetchBrowserJson(withBaseUrl(baseUrl, `/start${q}`), {
     method: "POST",
-    timeoutMs: 15000,
+    timeoutMs: BROWSER_STATUS_TIMEOUT_MS,
   });
 }
 

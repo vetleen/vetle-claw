@@ -1,0 +1,21 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openai/gpt-4o",
+        "fallbacks": ["anthropic/claude-sonnet-4-5"]
+      },
+      "maxConcurrent": 2
+    },
+    "list": [{ "id": "main", "default": true }]
+  },
+  "bindings": [{ "agentId": "main", "match": { "channel": "discord" } }],
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "groupPolicy": "allowlist",
+      "guilds": {}
+    }
+  },
+  "gateway": { "mode": "local", "bind": "auto" }
+}

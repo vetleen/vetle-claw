@@ -71,6 +71,9 @@ USER.md
 # local tooling
 .serena/
 
+# Fly.io secrets (paste real values; never commit)
+fly-secrets.env
+
 # Agent credentials and memory (NEVER COMMIT)
 /memory/
 .agent/*.json

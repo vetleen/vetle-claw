@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { resolveStateDir } from "../config/paths.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { isSubagentSessionKey } from "../routing/session-key.js";
 import { resolveUserPath } from "../utils.js";
@@ -10,6 +11,15 @@ export function resolveDefaultAgentWorkspaceDir(
   env: NodeJS.ProcessEnv = process.env,
   homedir: () => string = os.homedir,
 ): string {
+  const stateOverride = env.OPENCLAW_STATE_DIR?.trim() || env.CLAWDBOT_STATE_DIR?.trim();
+  if (stateOverride) {
+    const stateDir = resolveStateDir(env, homedir);
+    const profile = env.OPENCLAW_PROFILE?.trim();
+    if (profile && profile.toLowerCase() !== "default") {
+      return path.join(stateDir, `workspace-${profile}`);
+    }
+    return path.join(stateDir, "workspace");
+  }
   const profile = env.OPENCLAW_PROFILE?.trim();
   if (profile && profile.toLowerCase() !== "default") {
     return path.join(homedir(), ".openclaw", `workspace-${profile}`);

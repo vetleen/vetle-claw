@@ -48,6 +48,28 @@ export async function startBrowserControlServiceFromConfig(): Promise<BrowserSer
     });
   }
 
+  // On headless servers (e.g. Fly.io), start the default browser eagerly so the first
+  // tool use doesn't require the agent to call "start" and the browser stays ready after restart.
+  if (resolved.headless && !resolved.attachOnly) {
+    const defaultProfile = resolveProfile(resolved, resolved.defaultProfile);
+    if (defaultProfile && defaultProfile.driver !== "extension") {
+      const ctx = createBrowserRouteContext({ getState: () => state });
+      void ctx
+        .forProfile(resolved.defaultProfile)
+        .ensureBrowserAvailable()
+        .then(() => {
+          logService.info(
+            `Browser started eagerly for headless profile "${resolved.defaultProfile}"`,
+          );
+        })
+        .catch((err) => {
+          logService.warn(
+            `Eager browser start for profile "${resolved.defaultProfile}" failed: ${String(err)}`,
+          );
+        });
+    }
+  }
+
   logService.info(
     `Browser control service ready (profiles=${Object.keys(resolved.profiles).length})`,
   );
