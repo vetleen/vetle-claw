@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
 Gemini Deep Research API client
-Performs complex, long-running research tasks via Gemini's Deep Research Agent
+Performs complex, long-running research tasks via Gemini's Deep Research Agent.
+
+API docs: https://ai.google.dev/gemini-api/docs/deep-research
 """
 
 import argparse
@@ -55,6 +57,27 @@ def create_interaction(api_key, query, output_format=None, file_search_store=Non
     return response.json()
 
 
+def _format_interaction_error(data):
+    """Extract a readable error message from interaction data (status=failed)."""
+    if not isinstance(data, dict):
+        return str(data)
+    # Common shapes: error (str), error.message, error.code, message
+    err = data.get("error")
+    if isinstance(err, str) and err.strip():
+        return err
+    if isinstance(err, dict):
+        msg = err.get("message") or err.get("msg") or err.get("detail")
+        if isinstance(msg, str) and msg.strip():
+            code = err.get("code")
+            return f"{msg}" if not code else f"[{code}] {msg}"
+        if err:
+            return json.dumps(err)
+    msg = data.get("message")
+    if isinstance(msg, str) and msg.strip():
+        return msg
+    return json.dumps(data) if data else "Unknown error"
+
+
 def poll_interaction(api_key, interaction_id, stream=False):
     """Poll for interaction updates"""
     headers = {
@@ -83,7 +106,8 @@ def poll_interaction(api_key, interaction_id, stream=False):
         if status == "completed":
             return data
         elif status == "failed":
-            print(f"Research failed: {data.get('error', 'Unknown error')}", file=sys.stderr)
+            err_msg = _format_interaction_error(data)
+            print(f"Research failed: {err_msg}", file=sys.stderr)
             sys.exit(1)
         
         time.sleep(10)  # Poll every 10 seconds

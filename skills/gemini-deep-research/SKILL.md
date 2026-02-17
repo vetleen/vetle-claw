@@ -11,7 +11,6 @@ Use Gemini's Deep Research Agent to perform complex, long-running context gather
 ## Prerequisites
 
 - `GEMINI_API_KEY` environment variable (from Google AI Studio)
-- **Note**: This does NOT work with Antigravity OAuth tokens. Requires a direct Gemini API key.
 
 ## How It Works
 
